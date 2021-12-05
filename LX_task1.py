@@ -4,85 +4,76 @@ import xml.etree.ElementTree as ET
 
 
 class HostelStudents:
-    """  """
+    """ Load files  students.json, rooms.json, unite them into room's list, where room
+     contains the list of students in this room, save JSON and XML. """
 
     def __init__(self, rooms, students):
         self.rooms = rooms
         self.students = students
 
-    def open_file(self, value):
-        """ Загружаем данные из JSON"""
-
-        with open(value, 'r', encoding='utf-8') as file:
+    @staticmethod
+    def open_file(files):
+        """ Load data from JSON"""
+        with open(files, 'r', encoding='utf-8') as file:
             return json.load(file)
 
-    def receive_key(self, item):
-        """ Ф-я для получения элемента, который используется при группировке и сортировке в качестве ключа"""
-
-        return item['room']  # №подумать (пересмотреть переменные)
+    @staticmethod
+    def receive_key(item):
+        """ Get Key's element, which used for grouping and sorting"""
+        """ Ф-я для получения элемента ключа, который используется при группировке и сортировке"""
+        return item['room']
 
     def sort_data_by_key(self):
-        """ Сортирует данные по ключу """
-
-        data_file = self.open_file(self.students)  # -------
+        """ Sort the data by Key """
+        data_file = self.open_file(self.students)
         return sorted(data_file, key=self.receive_key)
 
     def group_data_by_key(self):
-        """ Группирует данные по ключу """
-
-        students_group = []
-        sorted_data = self.sort_data_by_key()
-        for key, group_items in groupby(sorted_data, key=self.receive_key):
-            c = {key: [item for item in group_items]}
-            students_group.append(c)
-            # print('Комната: %s' % key)
-            # ssss = []
-            # for item in group_items:
-            #     del item['room']
-            #     # c= {key:[item for item in group_items ]}
-            #     ssss.append(item)
-            # students_group.append({key:ssss})
-            # print('Студент: %s' % item)
-        return students_group
+        """ Group data by key; group students into rooms """
+        students_group_room = []
+        sorted_students_room = self.sort_data_by_key()
+        for room, group_students in groupby(sorted_students_room, key=self.receive_key):
+            students_group_room.append({room: [student for student in group_students]})
+        return students_group_room
 
     def check_room_unique(self):
-        """ Проверет нет ли повторяющихся комнат, выводим их номера """
-
+        """ Check the repeating rooms, name their numbers """
         data_rooms = self.open_file(self.rooms)
         list_rooms = (d.pop('name').replace('Room #', '') for d in data_rooms)
         list_rooms = set(list_rooms)
         number_room_int = [int(number) for number in list_rooms]
-        # print(sorted(number_room_int))
         return number_room_int
 
-    def delete_in_data_students_room(self, data_students):
-        """ Удалил  """
-
-        data_student = []
-        for i in data_students:
-            del i['room']
-            data_student.append(i)
-        return data_student
+    @staticmethod
+    def delete_in_data_students_room(data_students):
+        """ Clean Key-meaning "room" in students' data """
+        info_students = []
+        for info_student in data_students:
+            del info_student['room']
+            info_students.append(info_student)
+        return info_students
 
     def settle_students_room(self):
+        """ Unite rooms and students """
         count = 0
         data_for_save = []
         number_room = self.check_room_unique()
         students = self.group_data_by_key()
-        for i in students:
-            for key, value in i.items():
-                if key in number_room:
-                    value = self.delete_in_data_students_room(value)
+        for students_in_room in students:
+            for room, students_info in students_in_room.items():
+                if room in number_room:
+                    students_in_room = self.delete_in_data_students_room(students_info)
                     data_for_save.append({
                         'id': count,
-                        'room': f"Room #{key}",
-                        'students': value
+                        'room': f"Room #{room}",
+                        'students': students_in_room
                     })
                     count = count + 1
-        print(data_for_save)
         return data_for_save
 
-    def generate_studens_room_for_save_XML(self):
+    @property
+    def generate_studens_room_for_save_xml(self):
+        """ Generate data for saving in XML """
         data = self.settle_students_room()
         root = ET.Element('root')
         for group_stud in data:
@@ -97,26 +88,19 @@ class HostelStudents:
 
     def save(self):
         data = self.settle_students_room()
-        with open('data.json', 'w') as f:
+        with open('ResultJSON.json', 'w') as f:
             json.dump(data, f)
 
-    def saveXML(self):
-        # data = self.settle_students_room()
-        # root = ET.Element('root')
-        # for group_stud in data:
-        #     room = ET.SubElement(root, "room")
-        #     ET.SubElement(room, 'id').text = str(group_stud['id'])
-        #     ET.SubElement(room, 'name').text = str(group_stud['room'])
-        #     student = ET.SubElement(room, 'student')
-        #     for i, item in enumerate(group_stud['students'], 1):
-        #         ET.SubElement(student, 'id').text = str(item['id'])
-        #         ET.SubElement(student, 'name').text = item['name']
-
-        tree = ET.ElementTree(self.generate_studens_room_for_save_XML())
-        tree.write("details1.xml", encoding='utf-8')
+    def save_xml(self):
+        tree = ET.ElementTree(self.generate_studens_room_for_save_xml)
+        tree.write("ResultXML.xml", encoding='utf-8')
 
 
-a = HostelStudents('rooms.json', 'students.json')
-# a.group_data_by_key()
-a.save()
-a.saveXML()
+def main():
+    result = HostelStudents('rooms.json', 'students.json')
+    result.save()
+    result.save_xml()
+
+
+if __name__ == '__main__':
+    main()
