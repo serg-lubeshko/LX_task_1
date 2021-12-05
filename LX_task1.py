@@ -11,7 +11,7 @@ class HostelStudents:
         self.students = students
 
     def open_file(self, value):
-        """  """
+        """ Загружаем данные из JSON"""
 
         with open(value, 'r', encoding='utf-8') as file:
             return json.load(file)
@@ -46,7 +46,7 @@ class HostelStudents:
         return students_group
 
     def check_room_unique(self):
-        """ Провереяте нет ли повторяющихся комнат, выводим их номера """
+        """ Проверет нет ли повторяющихся комнат, выводим их номера """
 
         data_rooms = self.open_file(self.rooms)
         list_rooms = (d.pop('name').replace('Room #', '') for d in data_rooms)
@@ -56,6 +56,8 @@ class HostelStudents:
         return number_room_int
 
     def delete_in_data_students_room(self, data_students):
+        """ Удалил  """
+
         data_student = []
         for i in data_students:
             del i['room']
@@ -77,7 +79,21 @@ class HostelStudents:
                         'students': value
                     })
                     count = count + 1
+        print(data_for_save)
         return data_for_save
+
+    def generate_studens_room_for_save_XML(self):
+        data = self.settle_students_room()
+        root = ET.Element('root')
+        for group_stud in data:
+            room = ET.SubElement(root, "room")
+            ET.SubElement(room, 'id').text = str(group_stud['id'])
+            ET.SubElement(room, 'name').text = str(group_stud['room'])
+            student = ET.SubElement(room, 'student')
+            for i, item in enumerate(group_stud['students'], 1):
+                ET.SubElement(student, 'id').text = str(item['id'])
+                ET.SubElement(student, 'name').text = item['name']
+        return root
 
     def save(self):
         data = self.settle_students_room()
@@ -85,18 +101,18 @@ class HostelStudents:
             json.dump(data, f)
 
     def saveXML(self):
-        students = self.group_data_by_key()
-        number_room = self.check_room_unique()
-        root = ET.Element('root')
-        for group_stud in students:
-            for key, values in group_stud.items():
-                if key in number_room:
-                    person = ET.SubElement(root, f"Room #{key}")
-                    for i, item in enumerate(values, 1):
-                        ET.SubElement(person, 'id').text = str(item['id'])
-                        ET.SubElement(person, 'name').text = item['name']
+        # data = self.settle_students_room()
+        # root = ET.Element('root')
+        # for group_stud in data:
+        #     room = ET.SubElement(root, "room")
+        #     ET.SubElement(room, 'id').text = str(group_stud['id'])
+        #     ET.SubElement(room, 'name').text = str(group_stud['room'])
+        #     student = ET.SubElement(room, 'student')
+        #     for i, item in enumerate(group_stud['students'], 1):
+        #         ET.SubElement(student, 'id').text = str(item['id'])
+        #         ET.SubElement(student, 'name').text = item['name']
 
-        tree = ET.ElementTree(root)
+        tree = ET.ElementTree(self.generate_studens_room_for_save_XML())
         tree.write("details1.xml", encoding='utf-8')
 
 
