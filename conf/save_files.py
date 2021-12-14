@@ -2,13 +2,12 @@ import json
 import xml.etree.ElementTree as ET
 
 
-class SaveFiles:
+class SerializerXML:
+    def __init__(self, data_list):
+        self.data_list=data_list
 
-
-    def save_xml(self, data_list):
-        """ Generate data for saving in XML and save """
-
-        data = data_list
+    def serializer_xml(self):
+        data = self.data_list
         root = ET.Element('root')
         for group_stud in data:
             room = ET.SubElement(root, "room")
@@ -19,9 +18,18 @@ class SaveFiles:
                 ET.SubElement(student, 'id').text = str(item['id'])
                 ET.SubElement(student, 'name').text = item['name']
 
-        tree = ET.ElementTree(root)
+        # tree = ET.ElementTree(root)
+        # tree.write("ResultXML.xml", encoding='utf-8')
+        return root
+
+
+class SaveFiles:
+
+    def save_xml(self, data_list):
+        """ save xml"""
+
+        tree = ET.ElementTree(SerializerXML(data_list).serializer_xml())
         tree.write("ResultXML.xml", encoding='utf-8')
-        return tree
 
     def save_json(self, data_list):
         """ save json"""
