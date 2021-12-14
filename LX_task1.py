@@ -1,10 +1,10 @@
 import json
 import xml.etree.ElementTree as ET
-from itertools import groupby
 
 from conf.argpase_work import Argpase
 from conf.open_file import OpenFile
 from conf.students_conf import StudentsData
+from conf.rooms_conf import RoomsData
 
 
 class HostelStudents:
@@ -12,21 +12,15 @@ class HostelStudents:
      contains the list of students in this room, save JSON and XML. """
 
     def __init__(self, rooms, students):
-        self.rooms = rooms
+        self.rooms_list = rooms
         self.students_list = students
 
-        
-    def check_room_unique(self):
-        """ Check the repeating rooms, name their numbers """
-
-        data_rooms = self.rooms
-        list_rooms = list((d | {'students': []} for d in data_rooms))
-        return  list_rooms
 
     def settle_students_room(self):
         # students = self.group_data_by_key()
         students = StudentsData(self.students_list).group_data_by_key()
-        rooms =  self.check_room_unique()
+        # rooms =  self.check_room_unique()
+        rooms =  RoomsData(self.rooms_list).check_room_unique()
 
         result =[]
         for room in rooms:
