@@ -1,9 +1,10 @@
 import json
-from itertools import groupby
 import xml.etree.ElementTree as ET
+from itertools import groupby
 
-from argpase_work import Argpase
-from open_file import OpenFile
+from conf.argpase_work import Argpase
+from conf.open_file import OpenFile
+from conf.students_conf import StudentsData
 
 
 class HostelStudents:
@@ -12,29 +13,7 @@ class HostelStudents:
 
     def __init__(self, rooms, students):
         self.rooms = rooms
-        self.students = students
-
-
-
-    @staticmethod
-    def receive_key(item):
-        """ Get Key's element, which used for grouping and sorting"""
-        """ Ф-я для получения элемента ключа, который используется при группировке и сортировке"""
-        return item['room']
-
-    def sort_data_by_key(self):
-        """ Sort the data by Key """
-        data_file = self.students
-        return sorted(data_file, key=self.receive_key)
-
-    def group_data_by_key(self):
-        """ Group data by key; group students into rooms """
-        students_group_room = {}
-        sorted_students_room = self.sort_data_by_key()
-        for room, group_students in groupby(sorted_students_room, key=self.receive_key):
-            students_group_room[room]=[student for student in group_students]
-        return students_group_room
-
+        self.students_list = students
 
         
     def check_room_unique(self):
@@ -45,7 +24,8 @@ class HostelStudents:
         return  list_rooms
 
     def settle_students_room(self):
-        students = self.group_data_by_key()
+        # students = self.group_data_by_key()
+        students = StudentsData(self.students_list).group_data_by_key()
         rooms =  self.check_room_unique()
 
         result =[]
